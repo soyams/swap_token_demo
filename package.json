@@ -1,0 +1,51 @@
+{
+  "name": "swap_demo",
+  "version": "0.0.2",
+  "description": "Make API-Endpoints for Ethereum BlockChain",
+  "scripts": {
+    "start": "nodemon server.js",
+    "chain": "ganache-cli",
+    "bridge": "ethereum-bridge",
+    "test": "truffle test test/*"
+  },
+  "author": "Arvind & Pranav",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-core": "^6.22.1",
+    "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.10",
+    "babel-plugin-transform-runtime": "^6.22.0",
+    "babel-preset-env": "^1.1.8",
+    "babel-preset-es2015": "^6.22.0",
+    "babel-register": "^6.22.0",
+    "css-loader": "^0.26.1",
+    "json-loader": "^0.5.4",
+    "style-loader": "^0.13.1",
+    "truffle-contract": "^1.1.11",
+    "web3": "^1.8.2"
+  },
+  "dependencies": {
+    "@0x/assert": "^3.0.36",
+    "@0x/contract-wrappers": "^13.23.1",
+    "@0x/subproviders": "^8.0.1",
+    "@0x/utils": "^7.0.0",
+    "@truffle/contract": "^4.6.20",
+    "@truffle/hdwallet-provider": "^2.1.10",
+    "axios": "^1.4.0",
+    "big-number": "^2.0.0",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "ethereum-bridge": "^0.6.2",
+    "express": "^4.16.2",
+    "fs": "0.0.1-security",
+    "http-server": "^14.1.1",
+    "jquery": "^3.6.4",
+    "nodemon": "^1.14.12",
+    "path": "^0.12.7",
+    "solc": "^0.8.19",
+    "truffle": "^5.8.4",
+    "web3-provider-engine": "^16.0.5"
+  }
+}
