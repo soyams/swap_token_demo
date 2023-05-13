@@ -6,7 +6,6 @@
     <script src="./javascript/jquery.min.js"></script>
     <script src="./javascript/web3.min.js"></script>
     <script src="./javascript/swap_demo.js"></script>
-    <!-- <script src="./javascript/swap_demo_testnet.js"></script> -->
     <link href="./stylesheets/app.css" rel="stylesheet">
 
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -36,46 +35,76 @@
           </div>
         </div>
         <hr style="margin-top: 5px;">
-        <form id="form_swap">
-          <div>
-            <div id="testnet_div" style="display:block">
+        <div id="form_swap">
+          <div class="row">
+            <div class="col-md-7">
               <label for="fromToken">From Token:</label>
-              <input type="text" id="fromToken" class="form-control" placeholder="Enter token symbol for mainnet or token address for goerli testnet" required/>
-              <label for="toToken">To Token:</label>
-              <input type="text" id="toToken" class="form-control" placeholder="Enter token symbol for mainnet or token address for goerli testnet" required/>
-            </div>
-            <!-- <div id="mainnet_div" style="display:none">
-              <label for="fromToken">From Token:</label>
-              <select id="fromToken" class="form-control" placeholder="Select Token" required>
-                <option value="select">-------Select-------</option>
-              </select>
-              <label for="toToken">To Token:</label>
-              <select id="toToken" class="form-control" placeholder="Select Token" required>
-                <option value="select">-------Select-------</option>
-              </select>
-            </div> -->
-
-            <label for="amount">Amount:</label><input type="number" id="amount" class="form-control" placeholder="e.g., 1 Eth or USDT or BSC" required></input>
-            <label for="slippage">Slippage:</label><input type="range" id="slippage_percent"  min="0" max="10" step="1" value="1"></input>
-             
-            <div id="swapInfo" class="row" style="display:none;padding-top: 10px;">
-              <div class="col-md-6">
-                <h5 id="_estimateGas" style="display: none;">Estimated Gas: <b  id="estimate_gas"></b></h5>
+              <div id="testnet_div_fromToken" style="display:block">
+                <input type="text" id="fromToken" class="form-control" placeholder="token symbol for mainnet/token address for goerli testnet" required/>
               </div>
-              <div class="col-md-6 text-right">
-               <h5 id="_currentPrice" style="display: none;">Current Price: <b id="currentPrice"></b></h5>
+              <div id="mainnet_div_fromToken" style="display:none">
+                <select id="selectFromToken" class="form-control" placeholder="Select Token Symbol" required>
+                  <option value="select">-------Select -------</option>
+                </select>
               </div>
             </div>
-            <hr id="hr">
-            <label for="toAddress">Receiver:</label><input type="text" id="toAddress" class="form-control" placeholder="your wallet address" required disabled></input>
+            <div class="col-md-5">
+              <label for="amount">Amount:</label>
+              <input type="number" id="amount" class="form-control" placeholder="e.g., 1 WETH or LINK or DAI" required />
+            </div>
+          </div>
+          <br>
+          <div class="row">
+            <div class="col-md-7">
+              <label for="toToken">To Token:</label>
+              <div id="testnet_div_toToken" style="display:block">
+                <input type="text" id="toToken" class="form-control" placeholder="token symbol for mainnet/token address for goerli testnet" required/>
+              </div>
+              <div id="mainnet_div_toToken" style="display:none">
+                <select id="selectToToken" class="form-control" placeholder="Select Token Symbol" required>
+                  <option value="select">-------Select-------</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-5">
+              <label for="expected_amount">Expected:</label>
+              <input type="number" id="expected_amount" class="form-control" placeholder="e.g., 1 WETH or LINK or DAI" disabled />
+            </div>
           </div>
           <hr>
           <div class="row">
-            <div class="col-md-2 col-md-offset-1"><button class="btn btn-primary" id="estimateSwap" type="button" onclick=App._getEstimate()>Estimate </button></div>
-            <div class="col-md-2 col-md-offset-2"><button class="btn btn-primary" id="swapToken" type="button" onclick=App._swapToken() disabled>Swap </button></div>
-            <div class="col-md-2 col-md-offset-2"><button class="btn btn-primary" id="btn_Clear" type="button" onclick=App._clear()>Reset</button></div>
+            <div class="col-md-4">
+              <b for="slippage">Slippage (optional):</b>
+            </div>
+            <div class="col-md-8">
+              <input type="range" id="slippage_percent"  min="0" max="10" step="1" value="1" />
+            </div>
           </div>
-        </form>
+          <hr id="hr_1" style="display: none;">
+          <div id="swapInfo" class="row" style="display:none;padding-top: 10px;">
+            <div class="col-md-6">
+              <h5 id="_estimateGas" style="display: none">Estimated Gas: <b  id="estimate_gas"></b></h5>
+            </div>
+            <div class="col-md-6 text-right">
+              <h5 id="_currentPrice" style="display: none;">Current Price: <b id="currentPrice"></b></h5>
+            </div>
+          </div>
+          <hr id="hr_2">
+          <div class="row">
+            <div class="col-md-2">
+              <label for="toAddress">Receiver:</label>
+            </div>
+            <div class="col-md-8 col-md-offset-2">
+              <input type="text" id="toAddress" class="form-control" placeholder="your wallet address" required disabled />
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1"><button class="btn btn-primary" id="estimateSwap" type="button" onclick=App._getEstimate()>Estimate </button></div>
+          <div class="col-md-3 col-md-offset-1"><button class="btn btn-primary" id="swapToken" type="button" onclick=App._swapToken() disabled>Swap Token</button></div>
+          <div class="col-md-3 col-md-offset-1"><button class="btn btn-primary" id="btn_Clear" type="button" onclick=App._clear()>Reset</button></div>
+        </div>
       </div>
       <br>
       <div id="_footer" class="hint"><strong>Hint:</strong> dapp to make token swap

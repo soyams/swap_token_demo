@@ -6,7 +6,6 @@ module.exports={
     
     _tokenList:(callback)=>{
 
-        // var url="https://tokens.coingecko.com/uniswap/all.json"
         var url="https://tokens.coingecko.com/uniswap/all.json"
         Promise.resolve(axios.get(url)).then(_response=>{
             callback(_response.data)
@@ -30,10 +29,10 @@ module.exports={
         console.log(url)
         Promise.resolve(axios.get(url)).then(_response=>{
             console.log(_response.data)
-            callback(_response.data)
+            callback({status:true,data:_response.data})
         }).catch(err=>{
             console.log(err)
-            callback(err)
+            callback({status:false,data:err})
         })
     },
      
@@ -61,10 +60,10 @@ module.exports={
                 '0x-api-key':process.env.SWAP_API_KEY
             }
         axios.get(swapUrl,{headers:header}).then(async(_res)=>{
-            callback(_res.data)
+            callback({status:true,data:_res.data})
         }).catch(err=>{
             console.log(err)
-            callback(err)
+            callback({status:false,data:err})
         })
     }
 }

@@ -11,11 +11,15 @@ App = {
   },
 
   initWeb3: function() {
-    if(window.ethereum){
+    if(typeof window.ethereum!=undefined){
       App.web3Provider=window.ethereum
       Promise.resolve(window.ethereum.request({method:'eth_requestAccounts'})).then(function(_acc){
         // window.ethereum.defaultAccount=_acc[0];
-      }).catch(function(err){console.log(err);});
+
+      }).catch(function(err){
+        console.log(err);
+        alert('No selected account found..User rejected the request')
+      });
      
     }
     else if(window.web3){
@@ -26,21 +30,23 @@ App = {
     }
     web3=new Web3(App.web3Provider);
     console.log(web3)
-    // web3.eth.net.getId((chainId)=>{
-    //   console.log(chainId)
-    // })
-    
-    // window.ethereum.on('changeChain',(_chainId)=>{
-    //   console.log(_chainId)
-    // })
+       
+    window.ethereum.on('chainChanged',(_chainId)=>{
+      App._clear();
+      App.get_account();
+    })
+    window.ethereum.on('accountsChanged',(_account)=>{
+      App._clear();
+      App.get_account();
+    })
     App.get_account();
   },
 
-  get_account: function(){
-   web3.eth.getAccounts(async function(err,_acc){
+  get_account: async function(){
+   await web3.eth.getAccounts(async function(err,_acc){
       web3.eth.defaultAccount=_acc[0];
-      await web3.eth.getBalance(web3.eth.defaultAccount,(err,currentBalance)=>{
-        document.getElementById("walletBalance").innerHTML=web3.fromWei(JSON.parse(currentBalance),'ether')+'Eth'
+      await window.ethereum.request({'method':'eth_chainId'}).then(_id=>{
+        alert("Connected Chain Id: "+_id+" & Connected Account: "+web3.eth.defaultAccount)
       })
       App.get_account_info();
     });
@@ -54,8 +60,11 @@ App = {
     document.getElementById('toAddress').disabled=false;
     document.getElementById('toAddress').value=web3.eth.defaultAccount;
     document.getElementById('toAddress').disabled=true;
-    
-    // return App.getTokenList();
+
+    await web3.eth.getBalance(web3.eth.defaultAccount,(err,currentBalance)=>{
+      document.getElementById("walletBalance").innerHTML=web3.fromWei(JSON.parse(currentBalance),'ether')+'Eth'
+    })
+    return App.getTokenList();//work here
   },
 
   getTokenList:async function(){//use api
@@ -66,17 +75,26 @@ App = {
     console.log(chainId)
     
     if(chainId=='0x1'){
-      document.getElementById('mainnet_div').style.display='block';
-      document.getElementById('testnet_div').style.display='none';
+      document.getElementById('mainnet_div_fromToken').style.display='block';
+      document.getElementById('mainnet_div_toToken').style.display='block';
+      document.getElementById('testnet_div_fromToken').style.display='none';
+      document.getElementById('testnet_div_toToken').style.display='none';
       $.get('/getTokenList').then(tokens=>{
         console.log(tokens)    
         this._addList(tokens);
       })
     }
+    else{
+      document.getElementById('mainnet_div_fromToken').style.display='none';
+      document.getElementById('mainnet_div_toToken').style.display='none';
+      document.getElementById('testnet_div_fromToken').style.display='block';
+      document.getElementById('testnet_div_toToken').style.display='block';
+      // App._clear()
+    }
   },
   _addList:function (tokenList) { //working
-    console.log('called')
-    _ptag1=document.getElementById("fromToken");
+
+    _ptag1=document.getElementById("selectFromToken");
     _br=document.createElement('br')
    
     for(i=0;i<tokenList.length;i++){
@@ -98,7 +116,7 @@ App = {
       _ptag1.appendChild(_br)
 
     }
-    _ptag2=document.getElementById("toToken");
+    _ptag2=document.getElementById("selectToToken");
     for(i=0;i<tokenList.length;i++){
 
       _options=document.createElement("option");
@@ -122,41 +140,74 @@ App = {
   },
   _getEstimate:async function(){
     
-    _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
-    _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
-    _slippagePercentage=document.getElementById('slippage_percent').value
-    _taker=document.getElementById('toAddress').value;
+    if(document.getElementById('connect').innerHTML=='connected'){
 
-    _chainId=await window.ethereum.request({"method":"eth_chainId"})
-    _amount=parseFloat(document.getElementById('amount').value);//1000000000000
-    
-    if(_amount>0){
-      if(_taker!=""){
-        if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken){
-          Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker})).then(_response=>{
-            console.log(_response)
-            alert("Estimate Exchange Values fetched!! Go for Swap..")
-            document.getElementById('swapToken').disabled=false
-            document.getElementById('swapInfo').style.display="block"
-            document.getElementById('_estimateGas').style.display="block"
-            document.getElementById('estimate_gas').innerHTML=_response.estimatedGas;
-            document.getElementById('_currentPrice').style.display="block"
-            document.getElementById('currentPrice').innerHTML=_response.price;
-            document.getElementById('hr').style.marginTop="10px";
-          }).catch(err=>{
-          console.log(err)  
-          })
-        }
-        else{
-          alert("Required detail missing.")
-        }
+      var chainId=await window.ethereum.request({'method':'eth_chainId'}).then(_id=>{
+        return _id
+      })
+
+      if(chainId=='0x1'){
+        _fromToken=document.getElementById('selectFromToken').value
+        _toToken=document.getElementById('selectToToken').value
       }
       else{
-        alert("connect with wallet.")
+        _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
+        _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
       }
-    }else{
-      alert("amount must be greater than 0.")
+      
+      _slippagePercentage=document.getElementById('slippage_percent').value
+      _taker=document.getElementById('toAddress').value;
+
+      _chainId=await window.ethereum.request({"method":"eth_chainId"})
+      _amount=parseFloat(document.getElementById('amount').value);//1000000000000
+      
+      if(_amount>0){
+        if(_taker!=""){
+          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken && _fromToken!="select" && _toToken!="select"){
+            Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker})).then(_response=>{
+
+              if(_response.status!=false){
+                console.log(_response.data)
+                alert("Estimate Exchange Values fetched!! Go for Swap..")//and here
+                document.getElementById('swapToken').disabled=false
+                document.getElementById('expected_amount').value=_response.data.buyAmount
+                document.getElementById('swapInfo').style.display="block"
+                document.getElementById('_estimateGas').style.display="block"
+                document.getElementById('estimate_gas').innerHTML=_response.data.estimatedGas;
+                document.getElementById('_currentPrice').style.display="block"
+                document.getElementById('currentPrice').innerHTML=_response.data.price;
+                document.getElementById('hr_1').style.display="block";
+                document.getElementById('hr_1').style.marginBottom="0px";
+                document.getElementById('hr_2').style.marginTop="10px";
+              }
+              else{
+                console.log(_response.data)
+                alert('Validation Failed');
+                // alert("status: "+err.status+" , Message: "+err.statusText+" & Error: "+err.responseJSON.reason)
+                // alert("status: "+_response.data.status+" , Error Code: "+_response.data.responseJSON.code+" & Error: "+_response.data.responseJSON.reason)
+              }
+              
+            }).catch(err=>{
+              console.log(err)  
+              alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
+            })
+          }
+          else{
+            alert("Required detail missing..select token")
+          }
+        }
+        else{
+          alert("connect with wallet.")
+        }
+      }else{
+        alert("amount must be greater than 0.")
+      }
     }
+    else{
+      console.log("connect to wallet first")
+      alert("connect to wallet first.")
+    }
+    
   },
   _swapApproval:async function(response){
 
@@ -391,7 +442,7 @@ App = {
 
     const tokenContract= web3.eth.contract(erc20).at(_fromTokenAddress)
     try{
-      await tokenContract.approve(_allowanceTarget,_maxApproval,{from:_taker,gas:"15000000"},async (err,txId)=>{
+      await tokenContract.approve(_allowanceTarget,_maxApproval,async (err,txId)=>{//,{from:_taker,gas:"15000000"}
         console.log(txId)
         if(txId!=undefined)
         {
@@ -399,7 +450,7 @@ App = {
             //     console.log(txReceipt)
             //     if(txReceipt){
               //    alert("transaction approval done")
-                    await web3.eth.sendTransaction(response,{from:_taker,value:response.sellAmount,gas:'15000000'},async(err,swapTxId)=>{//getting error while swapping   ,maxFeePerGas:web3.toWei('5','Gwei'),maxPriorityFeePerGas:web3.toWei('1.5',"Gwei")
+                    await web3.eth.sendTransaction(response,async(err,swapTxId)=>{//getting error while swapping   ,{from:_taker,value:response.sellAmount,gas:'15000000'}  ,maxFeePerGas:web3.toWei('5','Gwei'),maxPriorityFeePerGas:web3.toWei('1.5',"Gwei")
                         console.log(swapTxId)
                         if(swapTxId!=undefined){
                           alert("Swap Token Transaction Done!!! Wait a While & Check you balance..")
@@ -429,54 +480,74 @@ App = {
             alert("Transaction Approval Revert");
         }
        
-    });
+      });
     }catch(err){
         console.log(err)
         return false;
     }
 },
-  _swapToken:async function(){//api for trADING
+  _swapToken:async function()
+  {//api for trADING
+    if(document.getElementById('connect').innerHTML=='connected')
+    {
 
-    var _fromToken=document.getElementById('fromToken').value;
-    var _toToken=document.getElementById('toToken').value;
-    var _slippagePercentage=document.getElementById('slippage_percent').value//default=0.01%
-    var _taker=document.getElementById('toAddress').value;
-    var _chainId=await window.ethereum.request({"method":"eth_chainId"})
-    var _amount=parseFloat(document.getElementById('amount').value);
-    if(_amount>0){
-      if(_taker!=""){
-        if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken){
-          try{
-            response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker}).then(async _response=>{
-              return _response;
-            }) 
-            
-            if(response){
-              console.log(response)  
-              alert("Get Exchange Quotes Details!!! Ready for Approval..")
-              await App._swapApproval(response)
-            }
-            else{
-              console.log("api response not found")
-              alert("api response not found")
-            }
-        }
-        catch(err){
-          console.log(err)
-        }
-      }
-        else{
-          alert("Required detail missing.")
-        }
+      var chainId=await window.ethereum.request({'method':'eth_chainId'}).then(_id=>{
+        return _id
+      })
+
+      if(chainId=='0x1'){
+        _fromToken=document.getElementById('selectFromToken').value
+        _toToken=document.getElementById('selectToToken').value
       }
       else{
-        alert("connect with wallet")
+        _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
+        _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
       }
-    }else{
-      alert("amount must be greater than 0.")
+
+      var _slippagePercentage=document.getElementById('slippage_percent').value//default=0.01%
+      var _taker=document.getElementById('toAddress').value;
+      var _chainId=await window.ethereum.request({"method":"eth_chainId"})
+      var _amount=parseFloat(document.getElementById('amount').value);
+      if(_amount>0){
+        if(_taker!=""){
+          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken && _fromToken!="select" && _toToken!="select"){
+            try{
+              response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker}).then(async _response=>{
+                return _response;
+              }) 
+              
+              if(response.status!=false){
+                console.log(response) 
+                alert("Get Exchange Quotes Details!!! Ready for Approval..")
+                await App._swapApproval(response.data)
+              }
+              else{
+                console.log(response.data)
+                alert("BAD REQUEST")
+                 // alert("status: "+err.status+" , Message: "+err.statusText+" & Error: "+err.responseJSON.reason)
+                // alert("status: "+_response.data.status+" , Error Code: "+_response.data.responseJSON.code+" & Error: "+_response.data.responseJSON.reason)
+              }
+          }
+          catch(err){
+            console.log(err)
+            alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
+          }
+        }
+          else{
+            alert("Required detail missing..select token.")
+          }
+        }
+        else{
+          alert("connect with wallet")
+        }
+      }else{
+        alert("amount must be greater than 0.")
+      }
     }
-    
-    
+    else{
+      console.log("connect to wallet first")
+      alert("connect to wallet first.")
+    }
   },
   
 
@@ -484,11 +555,15 @@ _clear:function(){
   document.getElementById('fromToken').value=""
   document.getElementById('toToken').value=""
   document.getElementById('amount').value=""
+  document.getElementById('expected_amount').value=""
   document.getElementById('slippage_percent').value="1"
   // document.getElementById('toAddress').value=""
   document.getElementById('estimate_gas').innerHTML=0;
   document.getElementById('currentPrice').innerHTML=0
   document.getElementById('swapToken').disabled=true
+  document.getElementById('selectFromToken').value="select"
+  document.getElementById('selectToToken').value="select"
+
 }
 
 };
