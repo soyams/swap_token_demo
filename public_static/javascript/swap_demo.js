@@ -181,10 +181,9 @@ App = {
                 document.getElementById('hr_2').style.marginTop="10px";
               }
               else{
-                console.log(_response.data)
-                alert('Validation Failed');
-                // alert("status: "+err.status+" , Message: "+err.statusText+" & Error: "+err.responseJSON.reason)
-                // alert("status: "+_response.data.status+" , Error Code: "+_response.data.responseJSON.code+" & Error: "+_response.data.responseJSON.reason)
+                console.log(_response)
+                // alert('Validation Failed');
+                alert("status: "+_response.data.status+" , Message: "+_response.data.message+" & Error: "+_response.data.code)
               }
               
             }).catch(err=>{
@@ -446,10 +445,10 @@ App = {
         console.log(txId)
         if(txId!=undefined)
         {
-            // await web3.eth.getTransactionReceipt(txId,async (err,txReceipt)=>{
-            //     console.log(txReceipt)
-            //     if(txReceipt){
-              //    alert("transaction approval done")
+            await web3.eth.getTransactionReceipt(txId,async (err,txReceipt)=>{
+                console.log(txReceipt)
+                if(txReceipt){
+                 alert("transaction approval done")
                     await web3.eth.sendTransaction(response,async(err,swapTxId)=>{//getting error while swapping   ,{from:_taker,value:response.sellAmount,gas:'15000000'}  ,maxFeePerGas:web3.toWei('5','Gwei'),maxPriorityFeePerGas:web3.toWei('1.5',"Gwei")
                         console.log(swapTxId)
                         if(swapTxId!=undefined){
@@ -469,11 +468,11 @@ App = {
                           alert("Token couldn't be swapped..Transaction revert.")
                         }
                     })
-            //     }
-            //     else{
-            //         console.log("transaction approval receipt generation reverted")
-            //     }   
-            // })
+                }
+                else{
+                    console.log("transaction approval receipt generation reverted")
+                }   
+            })
         }
         else{
             console.log("Transaction Approval Revert");
@@ -523,14 +522,13 @@ App = {
               }
               else{
                 console.log(response.data)
-                alert("BAD REQUEST")
-                 // alert("status: "+err.status+" , Message: "+err.statusText+" & Error: "+err.responseJSON.reason)
-                // alert("status: "+_response.data.status+" , Error Code: "+_response.data.responseJSON.code+" & Error: "+_response.data.responseJSON.reason)
+                // alert("BAD REQUEST")
+                alert("status: "+response.data.status+" , Message: "+response.data.message+" & Error: "+response.data.code)
               }
           }
           catch(err){
             console.log(err)
-            alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
+            // alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
           }
         }
           else{
