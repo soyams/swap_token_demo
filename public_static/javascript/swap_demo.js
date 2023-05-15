@@ -79,17 +79,31 @@ App = {
       document.getElementById('mainnet_div_toToken').style.display='block';
       document.getElementById('testnet_div_fromToken').style.display='none';
       document.getElementById('testnet_div_toToken').style.display='none';
+      document.getElementById('testnet__fromToken').style.display='none';
+      document.getElementById('testnet__toToken').style.display='none';
+
       $.get('/getTokenList').then(tokens=>{
         console.log(tokens)    
         this._addList(tokens);
       })
     }
-    else{
+    else if(chainId=='0x5'){
+
       document.getElementById('mainnet_div_fromToken').style.display='none';
       document.getElementById('mainnet_div_toToken').style.display='none';
       document.getElementById('testnet_div_fromToken').style.display='block';
       document.getElementById('testnet_div_toToken').style.display='block';
-      // App._clear()
+      document.getElementById('testnet__fromToken').style.display='none';
+      document.getElementById('testnet__toToken').style.display='none';
+
+    }
+    else{
+      document.getElementById('mainnet_div_fromToken').style.display='none';
+      document.getElementById('mainnet_div_toToken').style.display='none';
+      document.getElementById('testnet_div_fromToken').style.display='none';
+      document.getElementById('testnet_div_toToken').style.display='none';
+      document.getElementById('testnet__fromToken').style.display='block';
+      document.getElementById('testnet__toToken').style.display='block';
     }
   },
   _addList:function (tokenList) { //working
@@ -150,9 +164,13 @@ App = {
         _fromToken=document.getElementById('selectFromToken').value
         _toToken=document.getElementById('selectToToken').value
       }
-      else{
+      else if(chainId=='0x5'){
         _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
         _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
+      }
+      else{
+          _fromToken=document.getElementById('_fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
+          _toToken=document.getElementById('_toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
       }
       
       _slippagePercentage=document.getElementById('slippage_percent').value
@@ -163,33 +181,40 @@ App = {
       
       if(_amount>0){
         if(_taker!=""){
-          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken && _fromToken!="select" && _toToken!="select"){
-            Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker})).then(_response=>{
+          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!="select" && _toToken!="select"){
+            if(_fromToken!=_toToken)
+            {
+              Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker})).then(_response=>{
 
-              if(_response.status!=false){
-                console.log(_response.data)
-                alert("Estimate Exchange Values fetched!! Go for Swap..")//and here
-                document.getElementById('swapToken').disabled=false
-                document.getElementById('expected_amount').value=_response.data.buyAmount
-                document.getElementById('swapInfo').style.display="block"
-                document.getElementById('_estimateGas').style.display="block"
-                document.getElementById('estimate_gas').innerHTML=_response.data.estimatedGas;
-                document.getElementById('_currentPrice').style.display="block"
-                document.getElementById('currentPrice').innerHTML=_response.data.price;
-                document.getElementById('hr_1').style.display="block";
-                document.getElementById('hr_1').style.marginBottom="0px";
-                document.getElementById('hr_2').style.marginTop="10px";
-              }
-              else{
-                console.log(_response)
-                // alert('Validation Failed');
-                alert("status: "+_response.data.status+" , Message: "+_response.data.message+" & Error: "+_response.data.code)
-              }
-              
-            }).catch(err=>{
-              console.log(err)  
-              alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
-            })
+                if(_response.status!=false){
+                  console.log(_response.data)
+                  alert("Estimate Exchange Values fetched!! Go for Swap..")//and here
+                  document.getElementById('swapToken').disabled=false
+                  document.getElementById('expected_amount').value=_response.data.buyAmount
+                  document.getElementById('swapInfo').style.display="block"
+                  document.getElementById('_estimateGas').style.display="block"
+                  document.getElementById('estimate_gas').innerHTML=_response.data.estimatedGas;
+                  document.getElementById('_currentPrice').style.display="block"
+                  document.getElementById('currentPrice').innerHTML=_response.data.price;
+                  document.getElementById('hr_1').style.display="block";
+                  document.getElementById('hr_1').style.marginBottom="0px";
+                  document.getElementById('hr_2').style.marginTop="10px";
+                }
+                else{
+                  console.log(_response)
+                  // alert('Validation Failed');
+                  alert("status: "+_response.data.status+" , Message: "+_response.data.message+" & Error: "+_response.data.code)
+                }
+                
+              }).catch(err=>{
+                console.log(err)  
+                alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
+              })
+            }
+            else{
+              alert("Sell token & Buy token must be different.")
+            }
+            
           }
           else{
             alert("Required detail missing..select token")
@@ -447,8 +472,8 @@ App = {
         {
             await web3.eth.getTransactionReceipt(txId,async (err,txReceipt)=>{
                 console.log(txReceipt)
-                if(txReceipt){
-                 alert("transaction approval done")
+                // if(txReceipt!=null){//set it to not null
+                //  alert("transaction approval done")
                     await web3.eth.sendTransaction(response,async(err,swapTxId)=>{//getting error while swapping   ,{from:_taker,value:response.sellAmount,gas:'15000000'}  ,maxFeePerGas:web3.toWei('5','Gwei'),maxPriorityFeePerGas:web3.toWei('1.5',"Gwei")
                         console.log(swapTxId)
                         if(swapTxId!=undefined){
@@ -468,10 +493,10 @@ App = {
                           alert("Token couldn't be swapped..Transaction revert.")
                         }
                     })
-                }
-                else{
-                    console.log("transaction approval receipt generation reverted")
-                }   
+                // }
+                // else{
+                //     console.log("transaction approval receipt generation reverted")
+                // }   
             })
         }
         else{
@@ -498,9 +523,13 @@ App = {
         _fromToken=document.getElementById('selectFromToken').value
         _toToken=document.getElementById('selectToToken').value
       }
-      else{
+      else if(chainId=='0x5'){
         _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
         _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
+      }
+      else{
+          _fromToken=document.getElementById('_fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
+          _toToken=document.getElementById('_toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
       }
 
       var _slippagePercentage=document.getElementById('slippage_percent').value//default=0.01%
@@ -509,27 +538,35 @@ App = {
       var _amount=parseFloat(document.getElementById('amount').value);
       if(_amount>0){
         if(_taker!=""){
-          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!=_toToken && _fromToken!="select" && _toToken!="select"){
-            try{
-              response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker}).then(async _response=>{
-                return _response;
-              }) 
-              
-              if(response.status!=false){
-                console.log(response) 
-                alert("Get Exchange Quotes Details!!! Ready for Approval..")
-                await App._swapApproval(response.data)
+          if(_fromToken.length>0 && _toToken.length>0 && _fromToken!="select" && _toToken!="select")
+          {
+            if(_fromToken!=_toToken)
+            {
+              try
+              {
+                response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker}).then(async _response=>{
+                  return _response;
+                }) 
+                  
+                if(response.status!=false){
+                  console.log(response) 
+                  alert("Get Exchange Quotes Details!!! Ready for Approval..")
+                  await App._swapApproval(response.data)
+                }
+                else{
+                  console.log(response.data)
+                  // alert("BAD REQUEST")
+                  alert("status: "+response.data.status+" , Message: "+response.data.message+" & Error: "+response.data.code)
+                }
               }
-              else{
-                console.log(response.data)
-                // alert("BAD REQUEST")
-                alert("status: "+response.data.status+" , Message: "+response.data.message+" & Error: "+response.data.code)
+              catch(err){
+                console.log(err)
+                // alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
               }
-          }
-          catch(err){
-            console.log(err)
-            // alert("status: "+err.status+" , Error Code: "+err.responseJSON.code+" & Error: "+err.responseJSON.reason)
-          }
+            }
+            else{
+              alert("Sell token & Buy token must be different.")
+            }
         }
           else{
             alert("Required detail missing..select token.")
@@ -550,17 +587,19 @@ App = {
   
 
 _clear:function(){
-  document.getElementById('fromToken').value=""
-  document.getElementById('toToken').value=""
-  document.getElementById('amount').value=""
-  document.getElementById('expected_amount').value=""
-  document.getElementById('slippage_percent').value="1"
+    document.getElementById('_fromToken').value=""
+    document.getElementById('_toToken').value=""
+    document.getElementById('fromToken').value="select"
+    document.getElementById('toToken').value="select"
+    document.getElementById('amount').value=""
+    document.getElementById('expected_amount').value=""
+    document.getElementById('slippage_percent').value="1"
   // document.getElementById('toAddress').value=""
-  document.getElementById('estimate_gas').innerHTML=0;
-  document.getElementById('currentPrice').innerHTML=0
-  document.getElementById('swapToken').disabled=true
-  document.getElementById('selectFromToken').value="select"
-  document.getElementById('selectToToken').value="select"
+    document.getElementById('estimate_gas').innerHTML=0;
+    document.getElementById('currentPrice').innerHTML=0
+    document.getElementById('swapToken').disabled=true
+    document.getElementById('selectFromToken').value="select"
+    document.getElementById('selectToToken').value="select"
 
 }
 
