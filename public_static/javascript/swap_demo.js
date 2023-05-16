@@ -95,6 +95,9 @@ App = {
       document.getElementById('testnet_div_toToken').style.display='block';
       document.getElementById('testnet__fromToken').style.display='none';
       document.getElementById('testnet__toToken').style.display='none';
+      _tokenList=await $.get('/getTokenList').then(tokens=>{
+        return tokens;
+      })
 
     }
     else{
@@ -163,10 +166,28 @@ App = {
       if(chainId=='0x1'){
         _fromToken=document.getElementById('selectFromToken').value
         _toToken=document.getElementById('selectToToken').value
+        _tokenSymbol=document.getElementById('fromToken').options[document.getElementById('fromToken').selectedIndex].text
+        _decimalVal=18;
+        console.log(_tokenList) 
+        for(i=0;i<_tokenList.length;i++){
+          if(_tokenSymbol==_tokenList[i].symbol){
+            _decimalVal=_tokenList[i].decimals
+            break;
+          }
+        }
       }
       else if(chainId=='0x5'){
-        _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
-        _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
+        _fromToken=document.getElementById('fromToken').value;// WETH
+        _toToken=document.getElementById('toToken').value;// USDC
+        _tokenSymbol=document.getElementById('fromToken').options[document.getElementById('fromToken').selectedIndex].text
+        _decimalVal=18;
+
+        for(i=0;i<_tokenList.length;i++){
+          if(_tokenSymbol==_tokenList[i].symbol){
+            _decimalVal=_tokenList[i].decimals
+            break;
+          }
+        }
       }
       else{
           _fromToken=document.getElementById('_fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
@@ -184,7 +205,7 @@ App = {
           if(_fromToken.length>0 && _toToken.length>0 && _fromToken!="select" && _toToken!="select"){
             if(_fromToken!=_toToken)
             {
-              Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker})).then(_response=>{
+              Promise.resolve($.post('/estimateSwapAmount',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,decimalVal:_decimalVal,taker:_taker})).then(_response=>{
 
                 if(_response.status!=false){
                   console.log(_response.data)
@@ -522,10 +543,28 @@ App = {
       if(chainId=='0x1'){
         _fromToken=document.getElementById('selectFromToken').value
         _toToken=document.getElementById('selectToToken').value
+        _tokenSymbol=document.getElementById('fromToken').options[document.getElementById('fromToken').selectedIndex].text
+        _decimalVal=18;
+        console.log(_tokenList) 
+        for(i=0;i<_tokenList.length;i++){
+          if(_tokenSymbol==_tokenList[i].symbol){
+            _decimalVal=_tokenList[i].decimals
+            break;
+          }
+        }
       }
       else if(chainId=='0x5'){
-        _fromToken=document.getElementById('fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
-        _toToken=document.getElementById('toToken').value;//0x07865c6E87B9F70255377e024ace6630C1Eaa37F - USDC
+        _fromToken=document.getElementById('fromToken').value;//- WETH
+        _toToken=document.getElementById('toToken').value;//- USDC
+        _tokenSymbol=document.getElementById('fromToken').options[document.getElementById('fromToken').selectedIndex].text
+        _decimalVal=18;
+
+        for(i=0;i<_tokenList.length;i++){
+          if(_tokenSymbol==_tokenList[i].symbol){
+            _decimalVal=_tokenList[i].decimals
+            break;
+          }
+        }
       }
       else{
           _fromToken=document.getElementById('_fromToken').value;//0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 - WETH
@@ -544,7 +583,7 @@ App = {
             {
               try
               {
-                response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,taker:_taker}).then(async _response=>{
+                response=await $.post('/swapToken',{chainId:_chainId,from:_fromToken,to:_toToken,amount:_amount,slippage:_slippagePercentage,decimalVal:_decimalVal,taker:_taker}).then(async _response=>{
                   return _response;
                 }) 
                   
