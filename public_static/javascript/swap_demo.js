@@ -211,7 +211,7 @@ App = {
                   console.log(_response.data)
                   alert("Estimate Exchange Values fetched!! Go for Swap..")//and here
                   document.getElementById('swapToken').disabled=false
-                  document.getElementById('expected_amount').value=_response.data.buyAmount
+                  document.getElementById('expected_amount').value=_response.data.buyAmount*_response.data.price//_response.data.buyAmount*(10**decimalValTo)
                   document.getElementById('swapInfo').style.display="block"
                   document.getElementById('_estimateGas').style.display="block"
                   document.getElementById('estimate_gas').innerHTML=_response.data.estimatedGas;
